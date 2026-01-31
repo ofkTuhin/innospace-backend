@@ -1,0 +1,127 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # ✅ Production-impacting files ONLY
+      - 'src/**'
+      - 'prisma/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.env.example'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Fetch last 2 commits to compare
+
+      # 🔍 Detect DB-related changes
+      - name: Check for DB schema changes
+        id: db_changes
+        run: |
+          # Compare current commit with previous commit
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          if echo "$CHANGED_FILES" | grep -qE "prisma/schema.prisma|prisma/migrations"; then
+            echo "db_changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Database changes detected"
+          else
+            echo "db_changed=false" >> $GITHUB_OUTPUT
+            echo "✅ No database changes"
+          fi
+
+      # 🚀 Deploy WITHOUT DB migration
+      - name: Deploy application (no DB changes)
+        if: steps.db_changes.outputs.db_changed == 'false'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e  # Exit on error
+            cd /var/www/fibre52/fibre52-trial-backend
+
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+
+            echo "📦 Installing dependencies..."
+            npm ci --production=false
+
+            echo "🏗️ Building application..."
+            npm run build
+
+            echo "🔄 Restarting PM2..."
+            pm2 restart all
+
+            echo "✅ Deployment completed successfully (no DB changes)"
+
+      # 🗄️ Deploy WITH DB migration
+      - name: Deploy application (with DB migration)
+        if: steps.db_changes.outputs.db_changed == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e  # Exit on error
+            cd /var/www/fibre52/fibre52-trial-backend
+
+            echo "📥 Pulling latest changes..."
+            git pull origin main
+
+            echo "📦 Installing dependencies..."
+            npm ci --production=false
+
+            echo "🗃️ Running Prisma migrations..."
+            npx prisma migrate deploy
+
+            echo "🔄 Generating Prisma Client..."
+            npx prisma generate
+
+            echo "🏗️ Building application..."
+            npm run build
+
+            echo "🔄 Restarting PM2..."
+            pm2 restart all
+
+            echo "✅ Deployment completed successfully (with DB migration)"
+
+      # 📊 Health check after deployment
+      - name: Verify deployment
+        if: always()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/fibre52/fibre52-trial-backend
+
+            echo "🔍 Checking PM2 status..."
+            pm2 list
+
+            echo "📋 Checking application logs..."
+            pm2 logs --lines 20 --nostream
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment completed successfully"
+          else
+            echo "❌ Deployment failed"
+            exit 1
+          fi

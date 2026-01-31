@@ -1,0 +1,289 @@
+openapi: 3.0.3
+info:
+  title: Auth API
+  version: 1.0.0
+  description: Authentication endpoints for login, password, OTP, and logout.
+
+tags:
+  - name: Auth
+
+paths:
+  /api/v1/auth/check-user:
+    post:
+      tags: [Auth]
+      summary: Check if user exists and has password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required: [email]
+      responses:
+        '200':
+          description: User check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isPassword:
+                    type: boolean
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /api/v1/auth/access-token:
+    get:
+      tags: [Auth]
+      summary: Get new access token using refresh token
+      parameters:
+        - in: cookie
+          name: refreshToken
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+
+  /api/v1/auth/user:
+    get:
+      tags: [Auth]
+      summary: Get logged in user info
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+
+  /api/v1/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Send OTP for password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required: [email]
+      responses:
+        '200':
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/v1/auth/validate-otp:
+    post:
+      tags: [Auth]
+      summary: Validate OTP and generate token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+                purpose:
+                  type: string
+              required: [email, otp, purpose]
+      responses:
+        '200':
+          description: OTP validated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  /api/v1/auth/set-password:
+    post:
+      tags: [Auth]
+      summary: Set password after OTP validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required: [email, password]
+      parameters:
+        - in: header
+          name: set-token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Password set and user logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+
+  /api/v1/auth/resend-otp:
+    post:
+      tags: [Auth]
+      summary: Resend OTP to user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required: [email]
+      responses:
+        '200':
+          description: OTP resent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/v1/auth/reset-password:
+    patch:
+      tags: [Auth]
+      summary: Reset password using token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+              required: [password, confirmPassword]
+      parameters:
+        - in: header
+          name: reset-token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user (clear cookies)
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+components:
+  schemas:
+    LoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        id:
+          type: string
+    UserInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        userType:
+          type: string
+        permissions:
+          type: object

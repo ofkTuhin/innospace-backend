@@ -1,0 +1,73 @@
+{
+  "name": "backend-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.ts",
+  "scripts": {
+    "start": "node -r tsconfig-paths/register dist/server.js",
+    "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only --ignore-watch node_modules --no-notify -r tsconfig-paths/register src/server.ts",
+    "build": "tsc && tscpaths -p tsconfig.json -s ./src -o ./dist",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "prepare": "husky",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "prisma generate",
+    "prisma": "prisma",
+    "worker:notifications": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --no-notify -r tsconfig-paths/register src/app/worker/index.ts"
+  },
+  "author": "Omar Faruk",
+  "license": "ISC",
+  "lint-staged": {
+    "src/**/*.ts": [
+      "yarn lint:fix",
+      "yarn format"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "prisma": "^5.13.0",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.13.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/multer": "^1.4.11",
+    "@types/swagger-ui-express": "^4.1.8",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.5.0",
+    "http-status": "^1.7.4",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "tscpaths": "^0.0.9",
+    "typescript-eslint": "^8.39.1",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "yamljs": "^0.3.0",
+    "zod": "^3.23.4"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}

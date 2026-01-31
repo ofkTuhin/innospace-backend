@@ -1,0 +1,34 @@
+# -----------------------------------------------------------------
+# Commit Message Guidelines (Conventional Commits)
+# -----------------------------------------------------------------
+# Format: <type>(<scope>): <short summary>
+#
+# <type>    = feat | fix | docs | style | refactor | perf | test | chore
+# <scope>   = OPTIONAL. e.g. api, auth, db, ui
+# <summary> = short imperative description (no period at end)
+#
+# Example:
+#   feat(auth): add JWT token refresh
+#   fix(db): correct user migration rollback issue
+#
+# -----------------------------------------------------------------
+# After the summary line, add a blank line and then a more detailed
+# explanation if necessary.
+#
+# Example:
+#
+#   feat(auth): add JWT token refresh
+#
+#   - Added refresh token flow in /auth endpoint
+#   - Updated middleware to check expiry
+#   - Closes #123
+#
+# -----------------------------------------------------------------
+# Breaking Changes:
+# If your change introduces a breaking change, include a line starting with BREAKING CHANGE:
+#
+# Example:
+#
+#   BREAKING CHANGE: `user_id` column renamed to `id`
+#
+# -----------------------------------------------------------------

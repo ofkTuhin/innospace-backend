@@ -1,0 +1,4 @@
+export const AUTH_CONSTANTS = {
+  RESET_PASSWORD_PURPOSE: 'reset',
+  SET_PASSWORD_PURPOSE: 'set',
+}
