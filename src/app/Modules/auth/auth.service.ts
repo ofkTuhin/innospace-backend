@@ -296,7 +296,6 @@ export const sendOTP = async (
   if (createOtp) {
     // TODO: Implement sendOTPEmail function
     // await sendOTPEmail(createOtp.email!, createOtp.otp)
-    console.log('OTP created:', createOtp.otp, 'for email:', createOtp.email)
   } else if (phoneNumber) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Phone number is not supported yet')
   } else {
